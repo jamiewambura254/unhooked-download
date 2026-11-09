@@ -1,1 +1,7 @@
-{ "cleanUrls": true }
+{
+  "cleanUrls": true,
+  "redirects": [
+    { "source": "/", "destination": "/unhooked", "permanent": false },
+    { "source": "/unhooked/unhooked.apk", "destination": "https://github.com/jamiewambura254/unhooked-download/releases/latest/download/unhooked.apk", "permanent": false }
+  ]
+}
