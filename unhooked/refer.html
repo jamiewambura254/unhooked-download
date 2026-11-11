@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unhooked Referrals</title>
+<meta name="description" content="Help a friend take back control with Unhooked, and get KSh 50 by M-Pesa for each one.">
+<style>
+  :root { --bg:#0e0f11; --fg:#f2f2f0; --muted:#a6a8ad; --accent:#e8b04a; --card:#17191c; --line:#2a2d32; --bad:#ef8a7a; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+  main { max-width:560px; margin:0 auto; padding:40px 16px 64px; }
+  .brand { font-size:15px; letter-spacing:.24em; font-weight:700; color:var(--accent); margin:0 0 14px; }
+  .brand a { color:inherit; text-decoration:none; }
+  h1 { font-size:34px; line-height:1.12; margin:0 0 10px; }
+  h2 { font-size:20px; margin:36px 0 10px; }
+  p, li { color:var(--muted); }
+  strong { color:var(--fg); }
+  a { color:var(--accent); }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px; margin:16px 0; }
+  label { display:block; font-weight:600; margin-bottom:6px; }
+  input { width:100%; font:inherit; font-size:18px; padding:12px 14px; border-radius:10px; border:1px solid var(--line); background:#0b0c0e; color:var(--fg); }
+  input:focus { outline:2px solid var(--accent); outline-offset:1px; }
+  button, .btn { display:block; width:100%; text-align:center; background:var(--accent); color:#111; font:inherit; font-weight:700; font-size:17px; border:0; padding:14px; border-radius:10px; margin-top:12px; cursor:pointer; text-decoration:none; }
+  button:disabled { opacity:.6; cursor:wait; }
+  .code { font-size:36px; font-weight:800; letter-spacing:.18em; color:var(--fg); margin:4px 0 8px; }
+  .msg { margin:10px 0 0; min-height:1.5em; }
+  .msg.bad { color:var(--bad); }
+  .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:12px; }
+  .stat { background:#0b0c0e; border:1px solid var(--line); border-radius:10px; padding:10px; text-align:center; }
+  .stat strong { display:block; font-size:20px; }
+  .stat span { font-size:13px; color:var(--muted); }
+  [hidden] { display:none !important; }
+  ol { padding-left:20px; }
+  li { margin:6px 0; }
+  .foot { font-size:13px; margin-top:40px; text-align:center; }
+</style>
+</head>
+<body>
+<main>
+  <p class="brand"><a href="/unhooked">UNHOOKED</a></p>
+  <h1>Help a friend take back control.</h1>
+  <p>Know someone fighting porn, betting, debt or endless scrolling? Share your code. For every friend whose plan costs <strong>KSh 200 or more</strong> and has run <strong>7 days</strong>, you get <strong>KSh 50 by M-Pesa</strong>.</p>
+
+  <div class="card">
+    <form id="form" novalidate>
+      <label for="phone">Your M-Pesa number</label>
+      <input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="07XX XXX XXX" required>
+      <button id="go" type="submit">Get my code</button>
+      <p id="msg" class="msg" role="status" aria-live="polite"></p>
+    </form>
+
+    <div id="result" hidden>
+      <p style="margin:0">Your referral code</p>
+      <p id="code" class="code"></p>
+      <a id="wa" class="btn" href="#" target="_blank" rel="noopener">Share on WhatsApp</a>
+      <div class="stats">
+        <div class="stat"><strong id="waiting">0</strong><span>friends counting 7 days</span></div>
+        <div class="stat"><strong id="owed">KSh 0</strong><span>owed to you</span></div>
+        <div class="stat"><strong id="paid">KSh 0</strong><span>paid to you</span></div>
+      </div>
+    </div>
+  </div>
+
+  <h2>How it works</h2>
+  <ol>
+    <li>Enter your M-Pesa number to get your code. The same number always gets the same code, so you can come back here any time to check what you have earned.</li>
+    <li>Share it. Your friend types it in the <strong>Referral code</strong> box in the Unhooked app before paying.</li>
+    <li>Once their plan (KSh 200 or more) has run 7 days, KSh 50 is owed to you and sent by M-Pesa to the number you entered, normally within 3 working days.</li>
+  </ol>
+  <p>Rewards are for real new clients: you cannot use your own code, a plan that is refunded earns nothing, and your friend pays the normal price. Your number is used only to send your rewards.</p>
+
+  <p class="foot"><a href="/unhooked">Back to Unhooked</a> · <a href="/unhooked/terms">Terms of Use</a> · <a href="/unhooked/privacy">Privacy Policy</a></p>
+</main>
+<script>
+  const API = 'https://unhooked.jacote.co.ke/v1/referrers';
+  const $ = (id) => document.getElementById(id);
+  const kes = (n) => 'KSh ' + Number(n || 0).toLocaleString('en-KE');
+  let stored = null;
+  try { stored = localStorage.getItem('unhookedReferralCode'); } catch (e) {}
+
+  async function showCode(code) {
+    $('code').textContent = code;
+    const text = "I'm taking back control with Unhooked. Use my code " + code + ' when you pay: https://www.jacote.co.ke/unhooked';
+    $('wa').href = 'https://wa.me/?text=' + encodeURIComponent(text);
+    $('result').hidden = false;
+    try {
+      const res = await fetch(API + '/' + encodeURIComponent(code));
+      if (!res.ok) return;
+      const s = await res.json();
+      $('waiting').textContent = s.waiting;
+      $('owed').textContent = kes(s.owedKes);
+      $('paid').textContent = kes(s.paidKes);
+    } catch (e) {}
+  }
+
+  $('form').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const phone = $('phone').value.trim();
+    const msg = $('msg');
+    msg.className = 'msg';
+    if (!/^(\+?254|0)?[17]\d{8}$/.test(phone.replace(/[\s-]/g, ''))) {
+      msg.textContent = 'Enter a Kenyan M-Pesa number, like 0712 345 678.';
+      msg.className = 'msg bad';
+      return;
+    }
+    $('go').disabled = true;
+    msg.textContent = 'Getting your code… (this can take up to a minute the first time)';
+    try {
+      const res = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone }) });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.error || 'Something went wrong. Try again.');
+      try { localStorage.setItem('unhookedReferralCode', body.code); } catch (e) {}
+      msg.textContent = '';
+      await showCode(body.code);
+    } catch (e) {
+      msg.textContent = e.message || 'Could not reach Unhooked. Check your connection and try again.';
+      msg.className = 'msg bad';
+    } finally {
+      $('go').disabled = false;
+    }
+  });
+
+  if (stored) showCode(stored);
+</script>
+</body>
+</html>
