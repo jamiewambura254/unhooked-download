@@ -41,7 +41,7 @@
   <h2>2. What we collect, and why</h2>
   <div class="card">
     <h3>Your phone's identity, as a one-way hash</h3>
-    <p>A hash of your phone's serial number and IMEI, made on the phone and mixed with a secret on our server. Kept on our server to restore your commitment after a factory reset and to stop a second commitment replacing a live one. Basis: contract.</p>
+    <p>A hash of your phone's serial number and IMEI, made on the phone and mixed with a secret on our server. When the phone signs up, it also sends the serial number and IMEI themselves, together with a certificate from its secure hardware, so our server can check the sign-up really comes from your phone and not from someone who knows those numbers. They are checked and not stored. Kept on our server to restore your commitment after a factory reset and to stop a second commitment replacing a live one. Basis: contract.</p>
   </div>
   <div class="card">
     <h3>Your commitment</h3>
